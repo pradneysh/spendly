@@ -1,0 +1,206 @@
+/* ------------------------------------------------------------------ */
+/* Hero v2 — centered single-column layout                             */
+/* ------------------------------------------------------------------ */
+
+.hero--center {
+    display: block;
+    text-align: center;
+    padding: 4.5rem 2rem 5rem;
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+/* Badge */
+.lp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.4rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 71, 42, 0.15);
+    margin-bottom: 1.75rem;
+}
+
+.lp-badge-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Title */
+.lp-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, 6vw, 4.25rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+}
+
+.lp-title-accent {
+    display: block;
+    color: var(--accent);
+}
+
+/* Subtitle */
+.lp-subtitle {
+    font-size: 1.1rem;
+    color: var(--ink-muted);
+    line-height: 1.7;
+    max-width: 600px;
+    margin: 0 auto 2.25rem;
+}
+
+/* CTA buttons */
+.lp-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3.5rem;
+}
+
+.btn-lp {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.8rem 1.75rem;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+
+.btn-lp:hover { background: var(--accent); }
+
+/* ------------------------------------------------------------------ */
+/* Dashboard mock                                                      */
+/* ------------------------------------------------------------------ */
+
+.lp-dashboard {
+    max-width: 780px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.lp-browser {
+    background: var(--paper-warm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem 1.5rem;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+}
+
+/* Traffic lights */
+.lp-traffic {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+}
+
+.lp-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.lp-dot-red    { background: #ff5f57; }
+.lp-dot-yellow { background: #febc2e; }
+.lp-dot-green  { background: #28c840; }
+
+/* Stat cards */
+.lp-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.lp-stat {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.lp-stat-label {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+}
+
+.lp-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    color: var(--ink);
+    line-height: 1.15;
+}
+
+.lp-stat-note {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    font-weight: 500;
+}
+
+.lp-note-danger  { color: var(--danger); }
+.lp-note-success { color: var(--accent); }
+
+/* Category bar chart */
+.lp-chart {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.lp-chart-row {
+    display: grid;
+    grid-template-columns: 54px 1fr;
+    align-items: center;
+    gap: 1rem;
+}
+
+.lp-chart-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    text-align: right;
+}
+
+.lp-chart-track {
+    height: 10px;
+    background: var(--border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.lp-chart-bar {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.lp-bar-food   { background: var(--accent-2); }
+.lp-bar-travel { background: #5b7fa6; }
+.lp-bar-bills  { background: #8b5e83; }
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                          */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 700px) {
+    .lp-stats { grid-template-columns: 1fr; }
+    .lp-subtitle br { display: none; }
+}
