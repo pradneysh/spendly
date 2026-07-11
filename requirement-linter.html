@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Requirement Completeness Scorecard</title>
+<style>
+  :root{
+    --bg:#F7F5EE; --card:#FFFFFF; --line:#E5E1D4;
+    --ink:#1C2A24; --soft:#6B7A70;
+    --green:#1E4D3B; --green-soft:#E4EFE7;
+    --amber:#C2731C; --amber-soft:#F9EEDD;
+    --red:#B0432F; --red-soft:#F7E6E1;
+    --cream:#EFEBDD;
+    --mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+    --serif:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    --sans:'IBM Plex Sans','Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1240px;margin:0 auto;padding:24px 20px}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
+  textarea{font-family:var(--mono)}
+
+  /* nav */
+  .nav{display:flex;align-items:center;gap:20px;font-family:var(--mono);font-size:13px;margin-bottom:10px;flex-wrap:wrap}
+  .nav button{padding-bottom:4px;color:var(--soft);border-bottom:2px solid transparent}
+  .nav button.on{color:var(--ink);font-weight:700;border-bottom-color:var(--green)}
+  .nav-right{margin-left:auto;display:flex;gap:8px;font-size:11px;align-items:center}
+  .pill{padding:4px 8px;border-radius:5px;background:var(--cream);border:1px solid var(--line);color:var(--soft)}
+  .pill.phi{background:var(--green-soft);color:var(--green);font-weight:700;border-color:var(--green)}
+  .pill.nophi{background:var(--amber-soft);color:var(--amber);font-weight:700;border-color:var(--amber)}
+
+  .eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.14em;font-family:var(--mono);color:var(--soft);margin-bottom:7px}
+  h1{font-family:var(--serif);font-size:30px;margin-bottom:4px}
+  .lede{font-size:14px;color:var(--soft);max-width:640px;line-height:1.55;margin-bottom:24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:16px}
+  .layout{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+  .left{width:320px;flex-shrink:0}
+  .right{flex:1;min-width:340px;display:flex;flex-direction:column;gap:16px}
+  @media(max-width:900px){.left{width:100%}}
+
+  /* left panel */
+  .srcbtns{display:flex;gap:8px;margin-bottom:14px}
+  .srcbtns .tabbtn{padding:6px 10px;border-radius:5px;font-size:12px;font-family:var(--mono)}
+  .srcbtns .tabbtn.on{background:var(--cream);border:1px solid var(--line);font-weight:600}
+  .srcbtns .ghost{margin-left:auto;color:var(--soft);font-family:var(--mono);font-size:12px}
+  .select{border:1px solid var(--line);border-radius:5px;padding:8px 10px;font-size:13px;margin-bottom:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .storybtn{width:100%;text-align:left;border:1px solid var(--line);border-radius:5px;padding:8px 10px;font-size:13px;display:flex;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .storybtn.on{border-color:var(--green);background:var(--green-soft)}
+  .storybtn .k{font-family:var(--mono);font-weight:700}
+  .storybtn .sc{font-family:var(--mono);font-weight:700;flex-shrink:0}
+  .origin{background:var(--cream);border-radius:5px;padding:8px;font-size:11px;font-family:var(--mono);color:var(--soft);margin:6px 0 16px;line-height:1.5}
+  .llmbtn{width:100%;text-align:left;border:1px solid var(--line);border-radius:5px;padding:8px 10px;margin-bottom:6px}
+  .llmbtn.on{border-color:var(--green);background:var(--green-soft)}
+  .llmbtn .row{display:flex;justify-content:space-between;align-items:center}
+  .llmbtn .nm{font-size:13px;font-weight:500}
+  .llmbtn .meta{font-size:11px;font-family:var(--mono);color:var(--soft);margin-top:2px}
+  .badge{font-size:9px;font-family:var(--mono);font-weight:700;padding:2px 5px;border-radius:4px}
+  .badge.phi{background:var(--green-soft);color:var(--green);border:1px solid var(--green)}
+  .badge.nophi{background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber)}
+  .llmnote{font-size:11px;color:var(--soft);line-height:1.5;margin:4px 0 14px}
+  .primary{width:100%;padding:11px;border-radius:5px;background:var(--green);color:#fff;font-size:14px;font-weight:600}
+
+  /* score header */
+  .scorehead{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}
+  .scorehead h2{font-family:var(--serif);font-size:21px}
+  .scorehead .sub{font-size:12px;font-family:var(--mono);color:var(--soft);margin-top:3px}
+  .bignum{font-family:var(--serif);font-size:46px;font-weight:700;line-height:1}
+  .bignum small{font-size:17px;color:var(--soft);font-weight:400}
+  .verdict{display:inline-block;padding:4px 8px;border-radius:5px;font-size:12px;font-weight:600;margin-top:4px}
+  .gauge{position:relative;height:12px;border-radius:99px;overflow:hidden;display:flex;margin-bottom:3px}
+  .gauge .marker{position:absolute;top:0;height:12px;width:2px;background:var(--ink)}
+  .gaugelbl{display:flex;font-size:10px;font-family:var(--mono);color:var(--soft);margin-bottom:14px}
+
+  /* lint text */
+  .storytext{font-size:15px;line-height:1.7;margin-bottom:8px}
+  .lint{cursor:help;border-radius:3px;padding:0 2px;text-decoration-line:underline;text-decoration-style:wavy;text-decoration-thickness:2px;text-underline-offset:4px}
+  .lint.amb{background:var(--amber-soft);text-decoration-color:var(--amber)}
+  .lint.test{background:var(--red-soft);text-decoration-color:var(--red)}
+  .lint.fixed-ok{background:var(--green-soft);text-decoration:none}
+  .lintnote{border:1px dashed var(--line);border-radius:5px;padding:10px;font-size:13px;min-height:42px;display:flex;align-items:center;gap:6px;background:var(--bg)}
+  .ruletag{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;margin-right:6px;flex-shrink:0}
+  .ruletag.amb{background:var(--amber-soft);color:var(--amber)}
+  .ruletag.test{background:var(--red-soft);color:var(--red)}
+
+  /* criteria */
+  .crithead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:10px;flex-wrap:wrap}
+  .drag{font-size:12px;font-family:var(--mono);color:var(--red)}
+  .critrow{width:100%;display:flex;align-items:center;gap:12px;padding:8px;border-radius:5px;text-align:left}
+  .critrow:hover{background:var(--bg)}
+  .critrow.open{background:var(--bg)}
+  .critname{width:180px;flex-shrink:0}
+  .critname .n{font-size:13px;font-weight:500}
+  .critname .m{font-size:10px;font-family:var(--mono);color:var(--soft)}
+  .bar{flex:1;height:6px;border-radius:99px;background:var(--cream)}
+  .bar>div{height:6px;border-radius:99px}
+  .critpts{width:82px;text-align:right;font-family:var(--mono);font-size:13px;flex-shrink:0}
+  .critpts span{color:var(--soft)}
+  .critreason{margin:0 8px 8px;border:1px solid var(--line);background:var(--bg);border-radius:5px;padding:12px;font-size:13px;line-height:1.6}
+  .critreason .d{font-family:var(--mono);color:var(--red)}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.twocol{grid-template-columns:1fr}}
+  .explain{font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.65}
+  ol.qs{padding-left:18px}
+  ol.qs li{font-size:13px;line-height:1.5;margin-bottom:6px}
+  .copyhint{font-size:11px;font-family:var(--mono);color:var(--green)}
+
+  /* persona */
+  .lens{padding:0}
+  .lenstabs{display:flex;border-bottom:1px solid var(--line);align-items:center}
+  .lenstabs button{padding:12px 18px;font-size:13px;font-weight:600;color:var(--soft);border-bottom:2px solid transparent}
+  .lenstabs button.on{color:var(--green);border-bottom-color:var(--green)}
+  .acceptall{margin-left:auto;margin-right:12px;padding:6px 10px;border:1px solid var(--green);color:var(--green);border-radius:5px;font-size:12px;font-weight:600}
+  .lensbody{padding:16px;display:flex;flex-direction:column;gap:12px}
+  .fixrow{display:flex;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:5px;padding:12px}
+  .fixrow.done{border-color:var(--green);background:#FAFCF9}
+  .diff-del{font-family:var(--mono);font-size:13px;color:var(--red);background:var(--red-soft);text-decoration:line-through;padding:1px 4px;border-radius:3px}
+  .diff-add{font-family:var(--mono);font-size:13px;color:var(--green);background:var(--green-soft);padding:1px 4px;border-radius:3px}
+  .acceptbtn{flex-shrink:0;align-self:flex-start;padding:7px 12px;border-radius:5px;font-size:12px;font-weight:600;color:#fff;background:var(--green)}
+  .acceptbtn.done{background:#4C7A3F}
+  .depicon{width:20px;height:20px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+  .deprow{display:flex;gap:8px;align-items:flex-start;font-size:13px;padding:4px 0;line-height:1.5}
+  .gherkin{font-family:var(--mono);font-size:12px;line-height:1.65;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:10px;white-space:pre-wrap;margin-bottom:8px}
+  ul.tdata{list-style:none}
+  ul.tdata li{font-size:13px;padding:2px 0}
+  ul.tdata li::before{content:"▸ ";color:var(--green)}
+
+  /* fixed story */
+  .fixedcard{border:2px solid var(--green);border-radius:7px;padding:16px;background:var(--card)}
+  .fixedcard .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+  .pendinghint{font-size:11px;font-family:var(--mono);color:var(--amber)}
+  .fixedtext{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:12px;font-size:15px;line-height:1.7;margin:8px 0 12px}
+  .fx-ok{background:var(--green-soft);color:var(--green);font-weight:600;border-radius:3px;padding:0 2px}
+  .fx-pending{text-decoration:underline wavy var(--amber);text-underline-offset:3px}
+  .applyrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .applybtn{padding:9px 16px;border-radius:5px;font-size:13px;font-weight:600;color:#fff;background:var(--green)}
+  .applybtn.done{background:#4C7A3F;cursor:default}
+  .applyhint{font-size:11px;font-family:var(--mono);color:var(--soft)}
+
+  /* notes screen */
+  .subtabs{display:flex;gap:4px}
+  .subtabs button{padding:9px 16px;font-size:13px;font-weight:600;color:var(--soft);border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0}
+  .subtabs button.on{background:var(--card);color:var(--green);border-color:var(--line)}
+  .fmtchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .fmtchip{background:var(--cream);border:1px solid var(--line);border-radius:5px;padding:6px 10px;font-size:12px}
+  .fmtchip b{font-family:var(--mono)}
+  .fmtchip span{color:var(--soft)}
+  .notesarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:5px;padding:12px;font-size:13px;line-height:1.6;resize:vertical;margin-bottom:12px}
+  .genrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .genbtn{padding:10px 16px;border-radius:5px;font-size:13px;font-weight:600;color:#fff;background:var(--green)}
+  .genhint{font-size:11px;font-family:var(--mono);color:var(--soft)}
+  .draft{border:1px solid var(--line);border-radius:5px;padding:12px;display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .draft .t{font-size:14px;font-weight:600;margin-bottom:4px}
+  .draft .s{font-size:12px;font-style:italic;color:var(--soft);margin-bottom:4px}
+  .draft .p{font-size:11px;font-family:var(--mono)}
+  .draft .btns{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+  .smallbtn{padding:7px 12px;border-radius:5px;font-size:12px;font-weight:600}
+  .smallbtn.pri{background:var(--green);color:#fff}
+  .smallbtn.sec{border:1px solid var(--line);color:var(--soft)}
+  .histrow{border:1px solid var(--line);border-radius:5px;padding:12px;margin-bottom:10px}
+  .histrow .head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .histrow .mt{font-size:14px;font-weight:600}
+  .histrow .meta{font-size:11px;font-family:var(--mono);color:var(--soft)}
+  .histchip{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:5px 9px;font-size:12px;margin:0 6px 6px 0}
+  .histchip b{font-family:var(--mono);color:var(--green)}
+  .histchip span{color:var(--soft)}
+
+  /* dashboard */
+  .dashstrip{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .dashstrip .cnt{display:flex;align-items:center;gap:7px;font-size:13px}
+  .dot{width:10px;height:10px;border-radius:99px;display:inline-block}
+  .dashgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.dashgrid{grid-template-columns:1fr}}
+  .dashcard{text-align:left;height:100%}
+  .dashcard:hover .card{box-shadow:0 1px 4px rgba(0,0,0,.07)}
+  .dashnum{font-family:var(--serif);font-size:26px;font-weight:700}
+
+  /* settings */
+  .setwrap{max-width:720px;display:flex;flex-direction:column;gap:16px}
+  .setllm{width:100%;text-align:left;border:2px solid var(--line);border-radius:6px;padding:14px;margin-bottom:8px;background:var(--card)}
+  .setllm.on{border-color:var(--green);background:var(--green-soft)}
+  .wtrow{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)}
+  .wtrow span:last-child{font-family:var(--mono)}
+  .wttotal{display:flex;justify-content:space-between;font-weight:700;color:var(--green);padding-top:8px;font-family:var(--mono)}
+  .wtgrid{display:grid;grid-template-columns:1fr 1fr;column-gap:32px}
+  @media(max-width:600px){.wtgrid{grid-template-columns:1fr}}
+  .fineprint{margin-top:32px;font-size:10px;font-family:var(--mono);color:var(--soft);line-height:1.7}
+
+  /* help page */
+  .helpwrap{max-width:860px;display:flex;flex-direction:column;gap:16px}
+  .helpintro{font-size:14px;line-height:1.65;color:var(--ink)}
+  .flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+  .flowstep{background:var(--cream);border:1px solid var(--line);border-radius:5px;padding:6px 10px;font-size:12px;font-family:var(--mono)}
+  .flowarrow{color:var(--soft);font-size:12px}
+  .helpsection{font-family:var(--serif);font-size:19px;font-weight:700;margin:6px 0 -6px}
+  .module{border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:10px}
+  .module:last-child{margin-bottom:0}
+  .module .mt{font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .module .mt .who{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--green);background:var(--green-soft);border-radius:4px;padding:2px 6px}
+  .whyhow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:700px){.whyhow{grid-template-columns:1fr}}
+  .whyhow .lbl{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--soft);margin-bottom:4px}
+  .whyhow p,.whyhow li{font-size:13px;line-height:1.6}
+  .whyhow ol{padding-left:17px}
+  .whyhow li{margin-bottom:3px}
+  .tipbox{background:var(--green-soft);border:1px solid var(--green);border-radius:5px;padding:9px 11px;font-size:12px;line-height:1.55;margin-top:10px}
+  .tipbox b{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ═══ Data ═══════════════════════════════════════════════════ */
+const LLMS=[
+ {id:"azure",name:"Azure OpenAI · GPT-4o",tenant:"Client tenant (Claritev)",phi:true,cost:"Client-billed",note:"All inference stays inside the client's Azure tenant. Approved for stories and meeting notes containing PHI or client data."},
+ {id:"claude",name:"Anthropic · Claude Sonnet",tenant:"CitiusTech API key",phi:false,cost:"Metered",note:"Strong at Gherkin generation and rewrites. Synthetic / de-identified content only."},
+ {id:"gemini",name:"Google AI Studio · Gemini",tenant:"Free tier",phi:false,cost:"Free (rate-limited)",note:"Zero-cost option for demos and rubric tuning. No client data."},
+ {id:"router",name:"OpenRouter · mixed models",tenant:"Free tier",phi:false,cost:"Free / metered",note:"A/B different models against the same rubric to compare scoring consistency."}
+];
+
+const CRIT=["Clear","Complete","Testable","Acceptance criteria","Feasible","Traceable","Business value","Dependencies","Risk","Non-functional"];
+const WT=[12,12,12,12,10,8,12,8,6,8]; // Σ = 100
+
+const STORIES=[
+ {key:"EQ-29",board:"Eqinox · EQ",phase:"In Progress",pts:5,
+  title:"Audit trail for provider and member record changes",
+  origin:{note:"Client compliance review",date:"Jul 3, 2026 · 11:20"},
+  scores:[72,50,55,15,85,80,80,85,40,60],
+  reasons:[
+   "Actor and object named; \u201Call changes\u201D is broad but bounded by the two record types.",
+   "Retention and immutability stated; missing: who can read the log, purge/legal-hold behaviour.",
+   "Search \u201Cby record ID, user, date range\u201D is testable; \u201Cdemonstrate HIPAA compliance\u201D is not observable.",
+   "Only 3 constraint notes — no Given/When/Then acceptance criteria. Largest single drag.",
+   "Change-data-capture exists on both tables; low technical risk.",
+   "Linked to epic EQ-12 (Compliance). No mockup for the search screen.",
+   "Benefit and persona explicit: Compliance Officer, HIPAA audit readiness.",
+   "No cross-team dependency — CDC pipeline is live (link-graph + component map).",
+   "Risk not addressed: log volume growth and query performance at 7-year scale unstated.",
+   "Retention NFR stated; access-control/masking NFR for the PHI-bearing log itself is missing."],
+  lint:[
+   {t:"As a Compliance Officer, I want "},
+   {t:"a complete audit trail of all changes",rule:"AMB-01",kind:"amb",note:"\u201CAll changes\u201D — reads/exports too, or only create/update/delete?",fixed:"an audit trail of every create, update and delete (reads excluded)"},
+   {t:" made to provider and member records (who, what, when, before/after values), so that we can "},
+   {t:"demonstrate HIPAA compliance",rule:"TST-04",kind:"test",note:"Not observable. Make it a measurable outcome.",fixed:"generate an auditor-ready change report for any record within 5 minutes"},
+   {t:" during audits."}],
+  explain:"Every create, update or delete on provider/member records is written to an immutable log kept 7+ years, searchable by record, user and date. Unclear: whether read access is logged, and who may query the log itself.",
+  questions:["Are read/view events in scope, or only data changes?","Who can query the audit log — and is that access itself audited?","Export format expected by auditors (CSV, PDF report)?","Behaviour under legal hold — can retention exceed 7 years?"],
+  po:{value:"pass",valueNote:"Persona and benefit explicit. Add a measurable target (report turnaround) to make value verifiable.",split:null,readyBy:"Fix ACs today → plannable for tomorrow's session."},
+  tech:{deps:[{type:"ok",text:"CDC pipeline already live on both tables — no cross-team dependency."}],
+   nfr:[{done:false,text:"Audit log itself contains PHI — access-control + masking AC required."},{done:true,text:"Retention NFR stated (7 years)."}],
+   estimate:"Pointed 5. Similar story EQ-11 ran as 5. Consistent."},
+  qa:{edge:[
+    "Given a record updated twice in the same second by two users\nWhen the log is queried\nThen both entries appear with distinct sequence IDs",
+    "Given a purge job runs\nWhen entries are younger than 7 years\nThen nothing is deleted and the job logs a zero-delete result",
+    "Given a user without compliance role\nWhen they query the audit log\nThen access is denied and the attempt itself is logged"],
+   data:["Record with 50+ change history","User without compliance role","Entries at exactly the 7-year boundary"]}},
+ {key:"EQ-34",board:"Eqinox · EQ",phase:"Refinement",pts:3,
+  title:"Member eligibility check before claim pricing",
+  origin:{note:"Sprint 42 grooming call",date:"Jul 8, 2026 · 14:32"},
+  scores:[45,40,38,20,55,60,30,30,25,20],
+  reasons:[
+   "\u201CQuickly\u201D and \u201Cas needed\u201D leave trigger and latency undefined.",
+   "No statement of which date eligibility is checked against (service vs submission).",
+   "\u201CHandle errors appropriately\u201D has no observable outcome.",
+   "No acceptance criteria written.",
+   "Eligibility integration is batch (nightly); real-time implied — feasibility gap.",
+   "Linked to epic EQ-08; no dependency ticket on Platform team's board.",
+   "No \u201Cso that\u201D — benefit unstated.",
+   "Depends on Eligibility API owned by Platform team — no linked ticket found (link-graph).",
+   "Risk unaddressed: behaviour when the eligibility service is down; pricing blocked vs queued.",
+   "Touches member PHI — audit-logging NFR missing; pricing-path latency NFR missing."],
+  lint:[
+   {t:"The system "},
+   {t:"should quickly verify eligibility",rule:"AMB-01",kind:"amb",note:"Unquantified. Define the latency target.",fixed:"returns an eligibility result within 2s (95th percentile)"},
+   {t:" "},
+   {t:"for the member as needed",rule:"AMB-02",kind:"amb",note:"Trigger hidden. When exactly does the check run?",fixed:"for every claim entering the pricing queue"},
+   {t:" and "},
+   {t:"handle errors appropriately",rule:"TST-04",kind:"test",note:"Untestable outcome. Name the queue and the notification.",fixed:"routes failures to the Eligibility Exception queue and notifies the assigned examiner"},
+   {t:"."}],
+  explain:"Before pricing, the system checks whether the member had active coverage. Unclear: when the check runs, how fast, against which date, and what happens on failure. If this restatement feels wrong — the story is.",
+  questions:["Eligibility as-of service date or submission date?","Retro-terminated member: fail the check or flag for review?","Is pricing blocked or queued when the eligibility service is down?","Fallback to last-known eligibility snapshot allowed?"],
+  po:{value:"warn",valueNote:"No stated benefit. Add: \u201Cso that claims for inactive members are not priced and paid.\u201D",split:null,readyBy:"4 open questions — realistically ready in 2 days, not tomorrow."},
+  tech:{deps:[{type:"warn",text:"Depends on Eligibility API owned by Platform team — no linked ticket on their board."},{type:"warn",text:"Current integration is batch (nightly); story implies real-time."}],
+   nfr:[{done:false,text:"Touches member PHI — audit-logging AC required."},{done:false,text:"Pricing-path latency AC missing."}],
+   estimate:"Pointed 3. ELG-1904 (similar) ran as 8 due to the same dependency. Re-point."},
+  qa:{edge:[
+    "Given a member retro-terminated after the service date\nWhen eligibility is checked\nThen flag for manual review (no auto-deny)",
+    "Given dual coverage (COB)\nWhen eligibility returns two active plans\nThen route to COB determination before pricing",
+    "Given a service timeout\nWhen a claim is in the pricing queue\nThen retry twice then move to exception queue"],
+   data:["Retro-terminated member","Dual-coverage (COB) member","Timeout stub for eligibility service"]}},
+ {key:"EQ-41",board:"Eqinox · EQ",phase:"Backlog",pts:8,
+  title:"Provider network savings report",
+  origin:{note:"Sprint 42 grooming call",date:"Jul 8, 2026 · 14:32"},
+  scores:[30,22,25,10,40,20,15,15,20,10],
+  reasons:[
+   "\u201Cetc.\u201D leaves the column list open-ended.",
+   "No report spec or client sample attached.",
+   "\u201CShared with clients\u201D — channel and actor undefined.",
+   "No acceptance criteria.",
+   "References the client portal, frozen for release hardening until Jul 24.",
+   "No epic link; similar story RPT-0812 delivered 80% of this in March.",
+   "\u201CAs a user\u201D — no persona, no benefit, no success measure.",
+   "Portal component frozen until Jul 24 — hard dependency (component map).",
+   "Risk unaddressed: client-facing data-quality exposure if savings figures are wrong.",
+   "Client-facing report with PHI columns — masking and access-control NFRs absent."],
+  lint:[
+   {t:"As a user I want a report of "},
+   {t:"network savings etc.",rule:"AMB-03",kind:"amb",note:"Open-ended scope. List columns or attach the client spec.",fixed:"network savings by provider, TIN and month (columns per attached spec)"},
+   {t:" The report "},
+   {t:"should be exported and shared with clients",rule:"AMB-05",kind:"amb",note:"Passive voice hides the actor, format and channel.",fixed:"is exported to Excel by the account manager and published to the client portal"},
+   {t:"."}],
+  explain:"Someone wants a savings report with unspecified contents, produced somehow, sent to clients through an unspecified channel. This story cannot be restated accurately — it is not ready.",
+  questions:["Which columns/grouping — is there an existing client sample?","Which persona runs it: account manager, portal user, or scheduled job?","Export format and delivery channel?","Does \u201Cnetwork savings\u201D mean billed-vs-allowed or negotiated discount?"],
+  po:{value:"fail",valueNote:"\u201CAs a user I want a report\u201D — fails the value check on persona, benefit and measure.",split:"Too big: report build + export + portal publish + notification. Split: (1) report query & columns, (2) Excel export, (3) portal publish & notify.",readyBy:"Blocked on client report spec. Not plannable this sprint."},
+  tech:{deps:[{type:"err",text:"Client portal frozen for release hardening until Jul 24 (component map)."},{type:"warn",text:"RPT-0812 (March) delivered 80% of this — reuse candidate flagged to BA."}],
+   nfr:[{done:false,text:"Client-facing report with PHI columns — masking + access-control ACs required."}],
+   estimate:"Pointed 8, but scope undefined — estimate meaningless until split."},
+  qa:{edge:[
+    "Given a provider with negative savings\nWhen the report runs\nThen show the amount flagged for data-quality review",
+    "Given a TIN with zero claims in the period\nWhen the report runs\nThen include the TIN with zero values (no silent omission)"],
+   data:["Negative-savings provider row","TIN with no claims","Client with portal access disabled"]}}
+];
+
+const NOTE_HISTORY=[
+ {meeting:"Sprint 42 grooming call",src:"Teams transcript (.vtt)",when:"Jul 8, 2026 · 14:32",by:"Azure OpenAI · GPT-4o",stories:[{key:"EQ-34",status:"Scored 37 · Refinement"},{key:"EQ-41",status:"Scored 21 · Backlog"}]},
+ {meeting:"Client compliance review",src:"Word notes (.docx)",when:"Jul 3, 2026 · 11:20",by:"Azure OpenAI · GPT-4o",stories:[{key:"EQ-29",status:"Scored 62 · In Progress"}]},
+ {meeting:"Payment integrity workshop",src:"Pasted text",when:"Jun 26, 2026 · 16:05",by:"Azure OpenAI · GPT-4o",stories:[{key:"EQ-18",status:"Done · Sprint 41"},{key:"EQ-19",status:"Done · Sprint 41"},{key:"EQ-20",status:"Dropped in grooming"}]}
+];
+
+const NOTE_FORMATS=[
+ {f:"Paste text",d:"Raw notes, chat recap, email body"},
+ {f:".docx / .txt / .md",d:"MoM documents, OneNote exports"},
+ {f:".vtt / .srt",d:"Teams & Zoom transcripts"},
+ {f:".eml / .msg",d:"Outlook meeting recap emails"},
+ {f:"Audio (.mp3/.m4a)",d:"Recording → transcription first"}
+];
+
+const DRAFTS=[
+ {title:"Flag out-of-network claims above negotiated threshold for repricing review",src:"\u201CRahul mentioned OON claims over the threshold keep slipping through repricing\u2026\u201D (line 23)",pre:54},
+ {title:"Weekly savings summary email to the account team",src:"\u201Cclient asked if we can just get a weekly savings number without logging in\u201D (line 41)",pre:38}
+];
+
+/* ═══ State ══════════════════════════════════════════════════ */
+const S={screen:"scorecard",storyIdx:0,llm:"azure",persona:"BA",openCrit:null,
+ accepted:new Set(),applied:new Set(),notesTab:"convert",generated:false,notesText:""};
+
+/* ═══ Helpers ════════════════════════════════════════════════ */
+const composite=s=>Math.round(s.scores.reduce((a,v,i)=>a+v*WT[i]/100,0));
+const fixesOf=s=>s.lint.filter(p=>p.rule);
+const bandOf=s=>s>=90?"ready":s>=75?"minor":s>=60?"refine":"notready";
+const BAND={ready:{label:"Ready for development",fg:"var(--green)",bg:"var(--green-soft)"},
+ minor:{label:"Minor improvements",fg:"#4C7A3F",bg:"#EBF2E3"},
+ refine:{label:"Needs refinement",fg:"var(--amber)",bg:"var(--amber-soft)"},
+ notready:{label:"Not ready",fg:"var(--red)",bg:"var(--red-soft)"}};
+const barColor=p=>p>=75?"var(--green)":p>=50?"var(--amber)":"var(--red)";
+const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const model=()=>LLMS.find(l=>l.id===S.llm);
+
+/* ═══ Renderers ══════════════════════════════════════════════ */
+function navHtml(){
+ const m=model();
+ const tabs=[["scorecard","Scorecard"],["notes","Notes → Stories"],["dashboard","Backlog dashboard"],["settings","Model & rubric"],["help","Help"]];
+ return `<div class="nav">
+  ${tabs.map(([id,l])=>`<button class="${S.screen===id?'on':''}" onclick="go('${id}')">${l}</button>`).join("")}
+  <span class="nav-right">
+   <span class="pill">⚙ ${m.name}</span>
+   <span class="pill ${m.phi?'phi':'nophi'}">${m.phi?'PHI-SAFE':'NO CLIENT DATA'}</span>
+  </span>
+ </div>
+ <div class="eyebrow">■ Requirement quality report · MCP-connected Jira</div>
+ <h1>Requirement Completeness Scorecard</h1>
+ <p class="lede">Convert meeting notes into draft stories, score any story against a 10-criterion readiness rubric with a ranked explanation of what's pulling it down, accept the suggested fixes, and apply the fixed story straight back to Jira.</p>`;
+}
+
+function leftPanel(st){
+ return `<div class="left"><div class="card">
+  <div class="srcbtns">
+   <button class="tabbtn on">Jira backlog</button>
+   <button class="tabbtn">Custom entry</button>
+   <button class="ghost">⟳ Refresh</button>
+  </div>
+  <div class="eyebrow">Board</div><div class="select">${st.board} ▾</div>
+  <div class="grid2">
+   <div><div class="eyebrow">Epic</div><div class="select" style="margin:0">All epics ▾</div></div>
+   <div><div class="eyebrow">Story phase</div><div class="select" style="margin:0">All phases ▾</div></div>
+  </div>
+  <div class="eyebrow">Find a story (${STORIES.length})</div>
+  ${STORIES.map((s,i)=>`<button class="storybtn ${i===S.storyIdx?'on':''}" onclick="pickStory(${i})">
+    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span class="k">${s.key}</span> — ${s.title}</span>
+    <span class="sc" style="color:${BAND[bandOf(composite(s))].fg}">${composite(s)}</span>
+   </button>`).join("")}
+  <div class="origin">origin: ${st.origin.note} · ${st.origin.date}</div>
+  <div class="eyebrow">Scoring model</div>
+  ${LLMS.map(l=>`<button class="llmbtn ${S.llm===l.id?'on':''}" onclick="pickLlm('${l.id}')">
+    <div class="row"><span class="nm">${l.name}</span><span class="badge ${l.phi?'phi':'nophi'}">${l.phi?'PHI-SAFE':'NO CLIENT DATA'}</span></div>
+    <div class="meta">${l.tenant} · ${l.cost}</div>
+   </button>`).join("")}
+  <p class="llmnote">${model().note}</p>
+  <button class="primary">Run readiness check →</button>
+ </div></div>`;
+}
+
+function lintSpanHtml(st){
+ return st.lint.map((p,i)=>{
+  if(!p.rule)return esc(p.t);
+  const ok=S.accepted.has(st.key+p.rule);
+  return `<span class="lint ${p.kind} ${ok?'fixed-ok':''}" onmouseenter="lintHover(${i})" onmouseleave="lintHover(null)">${esc(p.t)}</span>`;
+ }).join("");
+}
+
+function fixedStoryHtml(st){
+ const fixes=fixesOf(st);
+ const nAcc=fixes.filter(f=>S.accepted.has(st.key+f.rule)).length;
+ if(nAcc===0)return "";
+ const all=nAcc===fixes.length;
+ const applied=S.applied.has(st.key);
+ const body=st.lint.map(p=>{
+  if(!p.rule)return esc(p.t);
+  return S.accepted.has(st.key+p.rule)
+   ?`<span class="fx-ok">${esc(p.fixed)}</span>`
+   :`<span class="fx-pending">${esc(p.t)}</span>`;
+ }).join("");
+ return `<div class="fixedcard">
+  <div class="head"><div class="eyebrow" style="margin:0">Fixed user story · ${nAcc}/${fixes.length} fixes accepted</div>
+   ${all?"":'<span class="pendinghint">unaccepted phrases kept as-is</span>'}</div>
+  <div class="fixedtext">${body}</div>
+  <div class="applyrow">
+   <button class="applybtn ${applied?'done':''}" onclick="applyJira('${st.key}')" ${applied?'disabled':''}>
+    ${applied?'✓ Applied to Jira (EQ board)':'Apply to Jira →'}</button>
+   <span class="applyhint">${applied?'Story description updated · change logged in ticket history':'Updates the story description via MCP-connected Jira · original kept in history'}</span>
+  </div>
+ </div>`;
+}
+
+function lensHtml(st){
+ const p=S.persona;
+ let body="";
+ if(p==="BA"){
+  const fixes=fixesOf(st);
+  body=fixes.map(f=>{
+   const done=S.accepted.has(st.key+f.rule);
+   return `<div class="fixrow ${done?'done':''}">
+    <div style="min-width:0">
+     <div style="margin-bottom:6px"><span class="ruletag ${f.kind}">${f.rule}</span><span style="font-size:11px;color:var(--soft)">suggested rewrite</span></div>
+     <div><span class="diff-del">${esc(f.t)}</span></div>
+     <div style="margin-top:4px"><span class="diff-add">${esc(f.fixed)}</span></div>
+    </div>
+    <button class="acceptbtn ${done?'done':''}" onclick="acceptFix('${st.key}','${f.rule}')">${done?'✓ Accepted':'Accept fix'}</button>
+   </div>`;
+  }).join("")+fixedStoryHtml(st);
+ }else if(p==="PO"){
+  const vc=st.po.value==="pass"?"var(--green)":st.po.value==="warn"?"var(--amber)":"var(--red)";
+  body=`<div><div class="eyebrow">Value check</div>
+    <div class="deprow"><span class="dot" style="background:${vc};margin-top:5px"></span>${st.po.valueNote}</div></div>
+   ${st.po.split?`<div><div class="eyebrow">Split suggestion (INVEST)</div><div style="font-size:13px;line-height:1.55">${st.po.split}</div></div>`:""}
+   <div><div class="eyebrow">Ready by when</div><div style="font-size:13px;font-weight:600">${st.po.readyBy}</div></div>`;
+ }else if(p==="Tech Lead"){
+  const ic={ok:["✓","var(--green)","var(--green-soft)"],warn:["!","var(--amber)","var(--amber-soft)"],err:["✕","var(--red)","var(--red-soft)"]};
+  body=`<div><div class="eyebrow">Dependencies · Jira link-graph + component map</div>
+    ${st.tech.deps.map(d=>`<div class="deprow"><span class="depicon" style="color:${ic[d.type][1]};background:${ic[d.type][2]}">${ic[d.type][0]}</span>${d.text}</div>`).join("")}</div>
+   <div><div class="eyebrow">Required NFRs for touched components</div>
+    ${st.tech.nfr.map(n=>`<div class="deprow"><input type="checkbox" ${n.done?"checked":""} disabled style="margin-top:3px">${n.text}</div>`).join("")}</div>
+   <div><div class="eyebrow">Estimate sanity</div><div style="font-size:13px;line-height:1.55">${st.tech.estimate}</div></div>`;
+ }else{
+  body=`<div><div class="eyebrow">Generated edge &amp; negative cases</div>
+    ${st.qa.edge.map(g=>`<pre class="gherkin">${esc(g)}</pre>`).join("")}</div>
+   <div><div class="eyebrow">Test data needed · start env setup day 1</div>
+    <ul class="tdata">${st.qa.data.map(d=>`<li>${d}</li>`).join("")}</ul></div>`;
+ }
+ const showAcceptAll=p==="BA"&&fixesOf(st).some(f=>!S.accepted.has(st.key+f.rule));
+ return `<div class="card lens">
+  <div class="lenstabs">
+   ${["BA","PO","Tech Lead","QA"].map(x=>`<button class="${S.persona===x?'on':''}" onclick="pickPersona('${x}')">${x} lens</button>`).join("")}
+   ${showAcceptAll?`<button class="acceptall" onclick="acceptAll('${st.key}')">Accept all fixes</button>`:""}
+  </div>
+  <div class="lensbody">${body}</div>
+ </div>`;
+}
+
+function scorecardHtml(){
+ const st=STORIES[S.storyIdx];
+ const score=composite(st);
+ const b=BAND[bandOf(score)];
+ const m=model();
+ const rows=CRIT.map((name,i)=>({name,pct:st.scores[i],wt:WT[i],
+  got:+(st.scores[i]*WT[i]/100).toFixed(1),
+  drag:+(WT[i]-st.scores[i]*WT[i]/100).toFixed(1),
+  reason:st.reasons[i]})).sort((a,c)=>c.drag-a.drag);
+ const totalDrag=rows.reduce((a,r)=>a+r.drag,0).toFixed(1);
+ return `<div class="layout">
+  ${leftPanel(st)}
+  <div class="right">
+   <div class="card">
+    <div class="scorehead">
+     <div><h2>${st.title}</h2><div class="sub">${st.key} · Jira · scored by ${m.name}</div></div>
+     <div style="text-align:right;flex-shrink:0">
+      <div class="bignum">${score}<small>/100</small></div>
+      <span class="verdict" style="background:${b.bg};color:${b.fg}">● ${b.label}</span>
+     </div>
+    </div>
+    <div class="gauge">
+     <div style="width:60%;background:var(--red-soft)"></div><div style="width:15%;background:var(--amber-soft)"></div>
+     <div style="width:15%;background:#EBF2E3"></div><div style="width:10%;background:var(--green-soft)"></div>
+     <div class="marker" style="left:${score}%"></div>
+    </div>
+    <div class="gaugelbl"><span style="width:60%">0–59 · not ready</span><span style="width:15%">60–74</span><span style="width:15%">75–89</span><span>90+</span></div>
+    <div class="eyebrow">Story text · hover a highlight for the rule</div>
+    <p class="storytext">${lintSpanHtml(st)}</p>
+    <div class="lintnote" id="lintnote"><span style="color:var(--soft)">Hover a highlighted phrase to see why it was flagged.</span></div>
+   </div>
+
+   <div class="card">
+    <div class="crithead">
+     <div class="eyebrow" style="margin:0">Criterion breakdown — 10 mandatory · weights Σ 100 · ranked by impact</div>
+     <span class="drag">pulling the score down: −${totalDrag} pts</span>
+    </div>
+    ${rows.map(r=>`
+     <button class="critrow ${S.openCrit===r.name?'open':''}" onclick="toggleCrit('${r.name}')">
+      <div class="critname"><div class="n">${r.name}</div><div class="m">scored ${r.pct}% · weight ${r.wt}</div></div>
+      <div class="bar"><div style="width:${r.pct}%;background:${barColor(r.pct)}"></div></div>
+      <div class="critpts">${r.got}/${r.wt} <span>▸</span></div>
+     </button>
+     ${S.openCrit===r.name?`<div class="critreason">${r.reason}${r.drag>3?` <span class="d">(−${r.drag} pts)</span>`:""}</div>`:""}
+    `).join("")}
+   </div>
+
+   <div class="twocol">
+    <div class="card"><div class="eyebrow">“Explain it back to me”</div><p class="explain">${st.explain}</p></div>
+    <div class="card">
+     <div style="display:flex;justify-content:space-between;align-items:baseline"><div class="eyebrow">Questions before sprint</div><span class="copyhint">copy to grooming notes →</span></div>
+     <ol class="qs">${st.questions.map(q=>`<li>${q}</li>`).join("")}</ol>
+    </div>
+   </div>
+
+   ${lensHtml(st)}
+  </div>
+ </div>`;
+}
+
+function notesHtml(){
+ let inner="";
+ if(S.notesTab==="convert"){
+  inner=`<div class="card" style="margin-bottom:16px">
+   <div class="eyebrow">Supported input formats</div>
+   <div class="fmtchips">${NOTE_FORMATS.map(n=>`<span class="fmtchip"><b>${n.f}</b><span> · ${n.d}</span></span>`).join("")}</div>
+   <div class="srcbtns">
+    <button class="tabbtn on">Paste text</button><button class="tabbtn" style="color:var(--soft)">Upload file</button><button class="tabbtn" style="color:var(--soft)">Fetch Teams recap</button>
+   </div>
+   <textarea class="notesarea" rows="6" id="notesta" placeholder="Paste meeting notes or a transcript… e.g. 'Rahul: OON claims above the negotiated threshold keep slipping through repricing. Client also asked for a weekly savings number by email…'">${esc(S.notesText)}</textarea>
+   <div class="genrow">
+    <button class="genbtn" onclick="genDrafts()">Generate draft stories →</button>
+    <span class="genhint">each draft keeps a link back to the exact note line it came from</span>
+   </div>
+  </div>
+  ${S.generated?`<div class="card">
+   <div class="eyebrow">2 draft stories generated · Jul 11, 2026 · from pasted text · ${model().name}</div>
+   ${DRAFTS.map(d=>`<div class="draft">
+     <div style="min-width:0"><div class="t">${d.title}</div><div class="s">source: ${d.src}</div>
+      <span class="p" style="color:${barColor(d.pre)}">pre-score ${d.pre}/100 — refine before sprint</span></div>
+     <div class="btns"><button class="smallbtn pri">Send to backlog</button><button class="smallbtn sec">Edit draft</button></div>
+    </div>`).join("")}
+  </div>`:""}`;
+ }else{
+  inner=`<div class="card">
+   <div class="eyebrow">Which stories came from which meeting — and when</div>
+   ${NOTE_HISTORY.map(h=>`<div class="histrow">
+     <div class="head"><span class="mt">${h.meeting}</span><span class="meta">${h.src} · generated ${h.when} · ${h.by}</span></div>
+     ${h.stories.map(s=>`<span class="histchip"><b>${s.key}</b><span> · ${s.status}</span></span>`).join("")}
+    </div>`).join("")}
+   <p class="genhint" style="line-height:1.7">Traceability is two-way: each Jira story shows its origin meeting (left panel on the Scorecard), and each meeting shows the stories it produced with their current status.</p>
+  </div>`;
+ }
+ return `<div style="max-width:880px">
+  <div class="subtabs">
+   <button class="${S.notesTab==='convert'?'on':''}" onclick="notesTab('convert')">Convert notes</button>
+   <button class="${S.notesTab==='history'?'on':''}" onclick="notesTab('history')">Generation history</button>
+  </div>
+  <div style="margin-top:-1px">${inner}</div>
+ </div>`;
+}
+
+function dashboardHtml(){
+ const counts={ready:0,minor:0,refine:0,notready:0};
+ STORIES.forEach(s=>counts[bandOf(composite(s))]++);
+ return `<div style="max-width:880px;display:flex;flex-direction:column;gap:16px">
+  <div class="card"><div class="eyebrow">Sprint 42 readiness · Eqinox board</div>
+   <div class="dashstrip">
+    ${Object.entries(counts).map(([k,v])=>`<span class="cnt" style="color:${BAND[k].fg}"><span class="dot" style="background:${BAND[k].fg}"></span><b style="font-family:var(--serif);font-size:18px">${v}</b> ${BAND[k].label.toLowerCase()}</span>`).join("")}
+    <span class="genhint" style="margin-left:auto">Friday digest → PO + BA notified</span>
+   </div>
+  </div>
+  <div class="dashgrid">
+   ${STORIES.map((s,i)=>{const sc=composite(s);const b=BAND[bandOf(sc)];
+    return `<button class="dashcard" onclick="openStory(${i})"><div class="card" style="height:100%">
+     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:11px;font-family:var(--mono);color:var(--soft)">${s.key} · ${s.phase}</span>
+      <span class="dashnum" style="color:${b.fg}">${sc}</span></div>
+     <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px">${s.title}</div>
+     <span class="verdict" style="background:${b.bg};color:${b.fg};margin:0">${b.label}</span>
+     <div style="font-size:10px;font-family:var(--mono);color:var(--soft);margin-top:8px">origin: ${s.origin.note}</div>
+    </div></button>`;}).join("")}
+  </div>
+  <div class="card"><div class="eyebrow">Learning from outcomes · last 6 sprints</div>
+   <p style="font-size:13px;line-height:1.65">Stories scoring below <b style="font-family:var(--mono)">60</b> on <b>Testable</b> were <b style="color:var(--red)">3.1×</b> more likely to spill or be reopened. Rules <span style="font-family:var(--mono);color:var(--green)">TST-04</span> and <span style="font-family:var(--mono);color:var(--green)">AMB-02</span> were tightened from 14 tagged retro items. Average time saved per groomed story: <b style="font-family:var(--mono)">22 min</b>.</p>
+  </div>
+ </div>`;
+}
+
+function settingsHtml(){
+ return `<div class="setwrap">
+  <div class="card">
+   <div class="eyebrow">Scoring model — governance-aware selection</div>
+   <p style="font-size:13px;color:var(--soft);line-height:1.6;margin-bottom:14px">Stories and meeting notes pulled from client systems may contain PHI — only PHI-safe providers may process them. Other providers are limited to custom-entry (synthetic) content.</p>
+   ${LLMS.map(l=>`<button class="setllm ${S.llm===l.id?'on':''}" onclick="pickLlm('${l.id}')">
+     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-size:13px;font-weight:600">${l.name}</span>
+      <span class="badge ${l.phi?'phi':'nophi'}">${l.phi?'PHI-SAFE':'NO CLIENT DATA'}</span></div>
+     <div style="font-size:11px;font-family:var(--mono);color:var(--soft);margin-bottom:4px">${l.tenant} · ${l.cost}</div>
+     <div style="font-size:13px;line-height:1.55">${l.note}</div>
+    </button>`).join("")}
+  </div>
+  <div class="card">
+   <div class="eyebrow">Rubric — 10 mandatory criteria · weights Σ 100</div>
+   <div class="wtgrid">${CRIT.map((c,i)=>`<div class="wtrow"><span>${c}</span><span>${WT[i]}</span></div>`).join("")}</div>
+   <div class="wttotal"><span>Total</span><span>${WT.reduce((a,b)=>a+b,0)}</span></div>
+   <p class="genhint" style="margin-top:12px;line-height:1.7">All criteria are mandatory — weights are team-configurable but must always sum to 100. Verdict bands: 90–100 ready · 75–89 minor · 60–74 needs refinement · &lt;60 not ready.</p>
+  </div>
+ </div>`;
+}
+
+function helpModule(title,who,why,how,tip){
+ return `<div class="module">
+  <div class="mt">${title}${who.map(w=>`<span class="who">${w}</span>`).join("")}</div>
+  <div class="whyhow">
+   <div><div class="lbl">Why it exists</div><p>${why}</p></div>
+   <div><div class="lbl">How to use it</div><ol>${how.map(h=>`<li>${h}</li>`).join("")}</ol></div>
+  </div>
+  ${tip?`<div class="tipbox"><b>Tip:</b> ${tip}</div>`:""}
+ </div>`;
+}
+
+function helpHtml(){
+ return `<div class="helpwrap">
+
+  <div class="card">
+   <div class="eyebrow">About this tool</div>
+   <p class="helpintro">The Requirement Linter catches weak user stories <b>before</b> they enter a sprint — when a fix costs minutes instead of a spillover. It reads stories from your Jira backlog (or converts meeting notes into new ones), scores each against a 10-criterion Definition-of-Ready rubric, explains exactly what is pulling the score down, suggests concrete rewrites, and pushes the fixed story back to Jira. Every role gets its own lens: the BA sees rewrites, the PO sees value and readiness, the Tech Lead sees dependencies and NFRs, QA sees edge cases and test data.</p>
+   <div class="flow">
+    <span class="flowstep">Meeting notes</span><span class="flowarrow">→</span>
+    <span class="flowstep">Draft stories</span><span class="flowarrow">→</span>
+    <span class="flowstep">Score /100</span><span class="flowarrow">→</span>
+    <span class="flowstep">Accept fixes</span><span class="flowarrow">→</span>
+    <span class="flowstep">Apply to Jira</span><span class="flowarrow">→</span>
+    <span class="flowstep">Sprint planning</span>
+   </div>
+  </div>
+
+  <div class="helpsection">Scorecard screen</div>
+  <div class="card">
+   ${helpModule("Story picker &amp; board filters",["ALL ROLES"],
+    "Grooming happens against a live backlog, not copy-pasted text. The picker pulls stories straight from MCP-connected Jira so scores always reflect what is actually in the board.",
+    ["Choose the board, then narrow by epic and story phase.","Pick a story from the list — its current score shows beside it.","Use <b>Custom entry</b> to score text that is not in Jira yet (also the only mode allowed for non-PHI-safe models).","The <b>origin</b> line under the list shows which meeting the story came from."])}
+   ${helpModule("Scoring model selector",["ALL ROLES"],
+    "Stories from the client's Jira can contain PHI, so where the AI runs is a governance decision, not a convenience. The selector makes the choice explicit and visible.",
+    ["Pick a provider — the <b>PHI-SAFE / NO CLIENT DATA</b> badge updates in the header on every screen.","Keep Azure OpenAI (client tenant) for anything pulled from Jira or real meeting notes.","Use free-tier models only for synthetic content, demos, or rubric tuning.","Click <b>Run readiness check</b> to (re)score with the selected model."],
+    "Switching models and re-scoring the same story is a quick consistency check on the rubric itself.")}
+   ${helpModule("Composite score &amp; verdict band",["PO","ALL ROLES"],
+    "A single number ends the \u201Cis this ready?\u201D debate. The gauge shows where the story sits across four verdict bands, so \u201C63\u201D immediately reads as \u201Cneeds refinement, not far off\u201D.",
+    ["Read the score /100 and its band: 90–100 ready · 75–89 minor · 60–74 needs refinement · &lt;60 not ready.","The marker on the gauge shows how close the story is to the next band.","Scores update as fixes are accepted."])}
+   ${helpModule("Criterion breakdown — ranked by impact",["BA","TECH LEAD"],
+    "A score without an explanation is just an opinion. Ten mandatory weighted criteria (weights always sum to 100) are ranked by how many points each one is costing, so the biggest problem is always the first row.",
+    ["Read top-down — the first rows are the cheapest points to recover.","Click any row to expand the model's reasoning and the exact point drag.","Note that Dependencies, Risk and Non-functional are scored criteria like every other — nothing is optional."],
+    "The header shows the total points being pulled down — a story at 63 with −37 concentrated in two rows is a 20-minute fix, not a rewrite.")}
+   ${helpModule("Lint highlights on the story text",["BA"],
+    "Vague wording is where most sprint pain starts. Weasel words and untestable phrases are underlined in the story itself — like a spell-checker for requirements — so problems are seen in context, not in a separate report.",
+    ["Amber wavy underline = ambiguity; red = untestable outcome.","Hover any highlight to see the rule ID (e.g. AMB-01, TST-04) and the suggested rewrite.","Accepted fixes turn the highlight green in place."])}
+   ${helpModule("\u201CExplain it back to me\u201D",["BA","PO"],
+    "The fastest clarity test there is: the model restates the story in its own words. If the restatement is wrong or hedged, the story was unclear — no rubric needed to see it.",
+    ["Read the restatement after the story loads.","If it misses the intent, the gap it exposes is exactly what to fix in the text.","Use it in grooming: read it aloud and ask the room \u201Cis this what we meant?\u201D"])}
+   ${helpModule("Questions before sprint",["BA","PO"],
+    "Most mid-sprint churn traces back to a question nobody asked in grooming. The linter generates the 3–5 client-facing questions the story leaves open, so they get answered before development starts.",
+    ["Review the list — each question maps to a gap found during scoring.","Copy them into your grooming notes or the client clarification tracker.","A story is not \u201Cready\u201D while blocking questions are unanswered."])}
+   ${helpModule("BA lens — accept fixes &amp; fixed story",["BA"],
+    "Flagging problems without offering the fix just creates homework. Each flagged phrase comes with a concrete rewrite shown as a strike-through → replacement diff, and accepted fixes assemble into the complete corrected story.",
+    ["Review each suggested rewrite; click <b>Accept fix</b> (or <b>Accept all fixes</b>).","The <b>Fixed user story</b> card assembles the full corrected text — accepted parts in green, pending ones still underlined.","Click <b>Apply to Jira</b> to update the story description in one action; the original is kept in ticket history."],
+    "You stay in control: the linter never changes Jira until you explicitly apply.")}
+   ${helpModule("PO lens — value, split &amp; ready-by-when",["PO"],
+    "The PO's questions are different: is this worth building, is it one story or three, and can it enter planning tomorrow? This lens answers exactly those three.",
+    ["<b>Value check</b> flags stories with no persona, benefit or success measure.","<b>Split suggestion</b> proposes a concrete INVEST-based split when a story is too big.","<b>Ready by when</b> gives a realistic readiness date based on open questions and blockers — use it to sequence grooming."])}
+   ${helpModule("Tech Lead lens — dependencies, NFRs, estimates",["TECH LEAD"],
+    "The things that bite mid-sprint are rarely in the story text: a frozen component, an unticketed cross-team dependency, a missing PHI control. This lens checks the story against the Jira link-graph and a component map the tech leads themselves maintain.",
+    ["Review dependency flags: ✓ clear, ! risk, ✕ blocker (e.g. component frozen for release).","Work the NFR checklist — required non-functionals are derived from which components the story touches (PHI components always demand audit-logging and access-control ACs).","Check <b>Estimate sanity</b>: points compared against historically similar stories."])}
+   ${helpModule("QA lens — edge cases &amp; test data",["QA"],
+    "Happy-path ACs are what humans write; edge cases are what escapes to production. The linter generates the negative and boundary scenarios in Gherkin, plus the exact test data the story needs — so QA prep starts on day 1, not day 4.",
+    ["Review the generated Given/When/Then cases — payer-specific scenarios like retro-termination, COB and timeouts are covered.","Copy accepted cases into your test management tool.","Use the <b>Test data needed</b> list to raise environment/data requests before the sprint starts."])}
+  </div>
+
+  <div class="helpsection">Notes → Stories screen</div>
+  <div class="card">
+   ${helpModule("Convert notes",["BA","PO"],
+    "Requirements are born in meetings and die in notebooks. This module turns raw meeting notes or transcripts into draft user stories, each linked back to the exact line it came from — so nothing said in a call silently disappears.",
+    ["Paste text, upload a file (.docx/.txt/.md, .vtt/.srt transcripts, .eml/.msg emails), or fetch a Teams recap.","Click <b>Generate draft stories</b> — each draft shows its source line and a pre-score.","<b>Edit draft</b> to refine wording, then <b>Send to backlog</b> to create it in Jira.","Audio recordings work too, after a transcription step inside the client tenant."],
+    "Teams .vtt transcripts are the highest-value input — speaker names and timestamps give you \u201Cthis story came from what Rahul said at 14:32\u201D traceability.")}
+   ${helpModule("Generation history",["PO","TECH LEAD"],
+    "Two-way traceability: every meeting shows which stories it produced and when; every story shows which meeting it came from. This answers \u201Cwhere did this requirement come from?\u201D months later — and proves to the client that nothing from their calls was dropped.",
+    ["Open the <b>Generation history</b> tab.","Each entry shows the meeting, source format, generation timestamp, the model used, and the stories produced.","Story chips show current status (scored, in sprint, done, dropped) — click through from the Scorecard's origin line for the reverse direction."])}
+  </div>
+
+  <div class="helpsection">Backlog dashboard screen</div>
+  <div class="card">
+   ${helpModule("Sprint readiness strip &amp; story cards",["PO"],
+    "Walking into sprint planning without knowing the shape of the backlog wastes everyone's hour. The dashboard shows, at a glance, how many candidate stories are ready, fixable, or blocked — before the meeting starts.",
+    ["Read the counts per verdict band across the candidate backlog.","Click any story card to jump straight to its scorecard.","The Friday digest notifies the PO and BA of stories still red for the next sprint — Monday planning is never a surprise."])}
+   ${helpModule("Learning from outcomes",["PO","TECH LEAD"],
+    "A rubric is only credible if it predicts real pain. This module correlates readiness scores with what actually happened — spillovers, reopens, escaped defects — and tightens the lint rules from tagged retro items. It is also the ROI evidence: score thresholds that predict 3× spill risk, and time saved per groomed story.",
+    ["Review the correlation statement each sprint (e.g. low Testable score → 3.1× spill likelihood).","Tag retro items to the stories that caused them — that feedback is what tunes the rules.","Use the time-saved figure in leadership and client reporting."])}
+  </div>
+
+  <div class="helpsection">Model &amp; rubric screen</div>
+  <div class="card">
+   ${helpModule("Governance-aware model selection",["TECH LEAD","ADMIN"],
+    "Healthcare data cannot leave approved boundaries. This screen encodes the rule as product behaviour: Jira-sourced stories and real meeting notes are only ever processed by PHI-safe providers; free-tier models are limited to custom-entry synthetic content.",
+    ["Compare providers side by side: tenant, cost model, and the PHI badge.","Select the provider for the team — the choice shows in the header on every screen and in every score's audit line.","Use free-tier providers to A/B scoring consistency without spending client-billed tokens."])}
+   ${helpModule("Rubric weights",["PO","TECH LEAD"],
+    "Teams differ — a compliance-heavy account may weight Non-functional higher than a reporting account. Weights are configurable per team, with one hard rule: all ten criteria are mandatory and weights must always sum to 100, so scores stay comparable across teams.",
+    ["Review the current weights and the live Σ 100 check.","Agree changes in the team (BA + PO + Tech Lead + QA together) — the rubric is a shared contract, not a personal setting.","Verdict bands stay fixed even when weights change, so \u201Cready\u201D means the same thing everywhere."])}
+  </div>
+
+  <div class="card">
+   <div class="eyebrow">Guiding principle</div>
+   <p class="helpintro">The linter <b>suggests, humans decide</b>. It never blocks a story from a sprint and never writes to Jira without an explicit action from you. Its job is to make the grooming conversation faster and the first version of every story stronger — the judgement stays with the team.</p>
+  </div>
+
+ </div>`;
+}
+
+function render(){
+ const app=document.getElementById("app");
+ let screen="";
+ if(S.screen==="scorecard")screen=scorecardHtml();
+ else if(S.screen==="notes")screen=notesHtml();
+ else if(S.screen==="dashboard")screen=dashboardHtml();
+ else if(S.screen==="help")screen=helpHtml();
+ else screen=settingsHtml();
+ app.innerHTML=navHtml()+screen+
+  `<div class="fineprint">Verdict bands: 90–100 ready for development · 75–89 minor improvements · 60–74 needs refinement · &lt;60 not ready<br>
+   Composite = Σ(criterion score × weight), 10 mandatory criteria, weights Σ 100 · scored by ${model().name} over MCP-connected Jira</div>`;
+}
+
+/* ═══ Actions ════════════════════════════════════════════════ */
+function saveNotes(){const ta=document.getElementById("notesta");if(ta)S.notesText=ta.value;}
+window.go=id=>{saveNotes();S.screen=id;render();};
+window.pickStory=i=>{S.storyIdx=i;S.openCrit=null;render();};
+window.pickLlm=id=>{saveNotes();S.llm=id;render();};
+window.pickPersona=p=>{S.persona=p;render();};
+window.toggleCrit=n=>{S.openCrit=S.openCrit===n?null:n;render();};
+window.acceptFix=(key,rule)=>{S.accepted.add(key+rule);render();};
+window.acceptAll=key=>{fixesOf(STORIES.find(s=>s.key===key)).forEach(f=>S.accepted.add(key+f.rule));render();};
+window.applyJira=key=>{S.applied.add(key);render();};
+window.notesTab=t=>{saveNotes();S.notesTab=t;render();};
+window.genDrafts=()=>{saveNotes();S.generated=true;render();};
+window.openStory=i=>{S.storyIdx=i;S.screen="scorecard";S.openCrit=null;render();};
+window.lintHover=i=>{
+ const box=document.getElementById("lintnote");
+ if(!box)return;
+ if(i===null){box.style.background="var(--bg)";box.innerHTML='<span style="color:var(--soft)">Hover a highlighted phrase to see why it was flagged.</span>';return;}
+ const p=STORIES[S.storyIdx].lint[i];
+ box.style.background=p.kind==="test"?"var(--red-soft)":"var(--amber-soft)";
+ box.innerHTML=`<span class="ruletag ${p.kind}">${p.rule}</span>${p.note}`;
+};
+
+render();
+</script>
+</body>
+</html>
